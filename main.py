@@ -1,16 +1,16 @@
 import random
 
-#Apu functiot
+#Apufunktiot
 def hae_sanat():
-    with open("sanat.csv", "r", newline="") as tiedosto:
+    with open("sanat.csv", "r", encoding="utf-8") as tiedosto:
         teksti = tiedosto.read()
 
     sanat = teksti.splitlines()
-    #sanat = ["pieksämäki"]
     return sanat
 
 def Arvattava_sana():
     return random.choice(hae_sanat())
+
 
 #Pelin luokat
 class Hirsipuu:
@@ -21,24 +21,36 @@ class Hirsipuu:
         self.oikeat_kirjaimet = []
         self.vaarat_kirjaimet = []
         
+    def oikea_vastaus(self, kirjain):
+        self.oikeat_kirjaimet.append(kirjain)
+        print("Oikein!")
+
+    def vaara_vastaus(self, arvaus):
+        self.vaarat_kirjaimet.append(arvaus)
+        self.vaarat_arvaukset += 1
+        print("Väärin!")
+        
+        
+    #Hirsipuun rakenne
     def piirra_hirsipuu(self):
         base = [
             "  +---+",
-            "  |   |",
+            "  |  | ",
+            "     | ",
             "      |",
             "      |",
-            "      |",
-            "      |",
+            "     | ",
             "========="
         ]
-
+        
+        #Kehon osat
         osat = [
-            (2, 2, "O"),   # pää
-            (3, 2, "|"),   # vartalo
-            (3, 1, "/"),   # vas käsi
-            (3, 3, "\\"),  # oik käsi
-            (4, 1, "/"),   # vas jalka
-            (4, 3, "\\")   # oik jalka
+            (2, 2, "O."),  #Pää
+            (3, 3, "|"),   #Vartalo
+            (3, 2, "/"),   #Vasen käsi
+            (3, 4, "\\"),  #Oikea käsi
+            (4, 2, "/"),   #Vasen jalka
+            (4, 4, "\\")   #Oikea jalka
         ]
 
         rivit = []
@@ -51,17 +63,18 @@ class Hirsipuu:
 
         for rivi in rivit:
             print("".join(rivi))
-
+            
 
     def arvaus(self, kirjain):
         kirjain = kirjain.lower()
 
         if kirjain in self.oikeat_kirjaimet or kirjain in self.vaarat_kirjaimet:
-            print("Tämä kirjain on arvattu jo")
+            print("Tämä kirjain on arvattu jo!")
         elif kirjain in self.oikea_sana.lower():
-            OikeaVastaus().handlaa(self, kirjain)
+            self.oikea_vastaus(kirjain)
         else:
-            VaaraVastaus().handlaa(self, kirjain)
+            self.vaara_vastaus(kirjain)
+            
 
     def suorita(self):
         while self.vaarat_arvaukset < 6:
@@ -71,48 +84,43 @@ class Hirsipuu:
                 if kirjain.lower() in self.oikeat_kirjaimet:
                     naytettava += kirjain.lower() + " "
                 else:
-                    naytettava += "_ "
+                    naytettava += "  "
 
             print("HIRSIPUU")
             self.piirra_hirsipuu()
             print(naytettava)
-            print('_ ' * len(self.oikea_sana))
+            print('‾ ' * len(self.oikea_sana)) #Merkataan sanan kirjainten määrät viivalla
             
             if len(self.vaarat_kirjaimet) > 0:
                 print(*self.vaarat_kirjaimet, sep=", ")
             
-            kirjain = input("Arvaa kirjain tai sana : ")
+            kirjain = input("Arvaa kirjain tai sana: ")
             
-            if len(kirjain) == 1:
+            if len(kirjain) == 1: #Jos arvaa kirjainta
                 self.arvaukset += 1
                 self.arvaus(kirjain)
+                if set(self.oikea_sana.lower()) <= set(self.oikeat_kirjaimet):
+                    print("Voitit Pelin, GG!")
+                    print(self.oikea_sana.lower())        
+                    return
                 
-            elif len(kirjain) > 1:
+            elif len(kirjain) > 1: #Jos arvaa sanaa
                 if kirjain.lower() == self.oikea_sana.lower():
-                    print("Voitit Pelin, Oot hullu demoni!")
-                    break
+                    print("Voitit Pelin, GG!")
+                    print(self.oikea_sana.lower())       
+                    return
                 else:
-                    VaaraVastaus().handlaa(self, kirjain.lower())
+                    self.vaara_vastaus(kirjain.lower())
             else:
-                print("Voit antaa vain yhden kirjaimen kerrallaan!")
+                print("Kokeilisit nyt edes jotain?") #jos inputti jää tyhjäksi
                 
-                
-            
-
-class OikeaVastaus:
-    def handlaa(self, peli, kirjain):
-        peli.oikeat_kirjaimet.append(kirjain)
-        print("Oikein!")
-
-
-class VaaraVastaus:
-    def handlaa(self, peli, kirjain):
-        peli.vaarat_kirjaimet.append(kirjain)
-        peli.vaarat_arvaukset += 1
-        print("Väärin!")
+        #kun looppi ei pyöri enää eli vääriä vastauksia on liikaa
+        print("Hävisit pelin!")
+        self.piirra_hirsipuu()
+        print(naytettava)     
+        print('‾ ' * len(self.oikea_sana))        
+        print(self.oikea_sana)
 
 
 testi = Hirsipuu()
 testi.suorita()
-    
-        
